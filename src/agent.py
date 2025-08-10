@@ -35,13 +35,9 @@ class Agent:
         self.print_info = 100
 
         self.lr = 1e-4
-        self.trainer = Trainer(
-                    target_network=self.target_network,
-                    policy_network=self.policy_network,
-                    lr=self.lr,
-                    gamma=self.gamma
-                    )
-
+        self.trainer = Trainer(target_network=self.target_network,
+                               policy_network=self.policy_network,
+                               lr=self.lr,gamma=self.gamma)
         self.train = False
 
 

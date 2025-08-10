@@ -3,6 +3,7 @@ import argparse
 from src.agent import Agent
 from src.enviroment import Enviroment
 import numpy as np
+import os
 
 def train(path=None):
     agent = Agent()
@@ -11,10 +12,13 @@ def train(path=None):
 
     game_reward = 0
 
-    if path:
+    if path and os.path.exists(path):
         print(f"Loading model from {path}...")
         agent.policy_network.load_state_dict(torch.load(path))
         agent.update_target_network()
+    elif path:
+        print(f"Path {path} doesn't exist")
+        return
 
     env = Enviroment()
     obs, _ = env.reset()
@@ -59,7 +63,7 @@ def train(path=None):
 
             if agent.n_games % agent.print_info == 0:
                 mean_score = np.mean(agent.scores)
-                print(f'Game {agent.n_games}, Mean Score: {mean_score:.2f}, Record: {agent.score_record}')
+                print(f'Game {agent.n_games}: Mean score: {mean_score:.2f}, Record: {agent.score_record}')
 
             obs, _ = env.reset()
 

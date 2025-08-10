@@ -16,9 +16,9 @@ class Trainer:
         self.target_network.to(self.device)
 
         self.optimizer = optim.Adam(policy_network.parameters(), lr=self.lr)
+
         self.loss_fn = nn.SmoothL1Loss()
-        #self.loss_accumulator = 0
-        #self.loss_count = 0
+
 
     
     def train_step(self, states, actions, rewards, next_states, terminations):
@@ -31,10 +31,13 @@ class Trainer:
         next_states = torch.as_tensor(np.array(next_states), dtype=torch.float32, device=self.device)
         terminations = torch.as_tensor(np.array(terminations), dtype=torch.bool, device=self.device)
 
-
         with torch.no_grad():
-            target_values = self.target_network(next_states).max(dim=1).values
-            q_target = rewards + (~terminations) * self.gamma * target_values
+
+            next_actions = self.policy_network(next_states).argmax(dim=1, keepdim=True)
+
+            next_q_value = self.target_network(next_states).gather(1, next_actions).squeeze()
+
+            q_target = rewards + (~terminations) * self.gamma * next_q_value
 
         current_q = self.policy_network(states).gather(dim=1, index=actions.unsqueeze(dim=1)).squeeze()
 
@@ -44,12 +47,3 @@ class Trainer:
         loss.backward()
 
         self.optimizer.step()
-        
-        #self.loss_accumulator += loss.item()
-        #self.loss_count += 1
-
-        #if self.loss_count % 10000 == 0:
-        #    avg_loss = self.loss_accumulator / 10000
-        #    print(f"Average loss (last 10000 steps): {avg_loss:.4f}")
-        #    self.loss_accumulator = 0 
-        #    self.loss_count = 0
