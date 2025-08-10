@@ -46,11 +46,11 @@ class Agent:
     
 
     def train_step(self):
-        sample = self.memory.sample(self.batch_size)
-        if len(sample):
-            states, actions, rewards, new_states, terminates = zip(*sample)
-            self.trainer.train_step(states, actions, rewards, new_states, terminates)
-    
+        samples, indices, weights = self.memory.sample(self.batch_size)
+        if len(samples):
+            states, actions, rewards, new_states, terminates = zip(*samples)
+            td_errors = self.trainer.train_step(states, actions, rewards, new_states, terminates, weights)
+            self.memory.update_priorities(indices, td_errors)
 
     def get_action(self, state):    
         self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
